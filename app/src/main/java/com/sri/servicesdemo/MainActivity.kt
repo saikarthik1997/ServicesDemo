@@ -34,9 +34,15 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         val intent = Intent(this, MusicService::class.java)
-        startService(intent)
+//        startService(intent)
         bindService(intent, connection, Context.BIND_AUTO_CREATE)
        //  // Start the service explicitly
+    }
+
+    fun onStartService(view: View) {
+        val intent = Intent(this, MusicService::class.java)
+        startService(intent) // Start the service as a foreground service
+        bindService(intent, connection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onStop() {

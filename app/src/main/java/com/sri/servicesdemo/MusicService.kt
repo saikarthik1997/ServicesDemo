@@ -9,6 +9,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.media.MediaPlayer
 import android.os.Binder
 import android.os.Build
@@ -38,28 +39,55 @@ class MusicService : Service() {
 
     @SuppressLint("NewApi")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (!mediaPlayer!!.isPlaying) {
-            mediaPlayer?.start()
-            isPlaying = true
+        if(intent?.action==null){
+            createNotificationChannel()
+
+            val notificationIntent = Intent(this, MainActivity::class.java)
+            val pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                notificationIntent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val playIntent = Intent(this, MusicService::class.java)
+            playIntent.action = ACTION_PLAY
+            val playPendingIntent = PendingIntent.getService(
+                this,
+                0,
+                playIntent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val stopIntent = Intent(this, MusicService::class.java)
+            stopIntent.action = ACTION_STOP
+            val stopPendingIntent = PendingIntent.getService(
+                this,
+                0,
+                stopIntent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Music Service")
+                .setContentText("Music is playing...")
+                .setSmallIcon(R.drawable.baseline_music_note_24)
+                .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.baseline_music_note_24))
+                .setContentIntent(pendingIntent)
+                .addAction(R.drawable.baseline_play_arrow_24, "Play", playPendingIntent)
+                .addAction(R.drawable.baseline_stop_24, "Stop", stopPendingIntent)
+                .build()
+
+            startForeground(NOTIFICATION_ID, notification)
+            togglePlayback()
         }
 
-        createNotificationChannel()
-        val notificationIntent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
+       println("intent got is ${intent?.action}")
+        if (intent?.action == ACTION_PLAY || intent?.action== ACTION_STOP) {
+            togglePlayback()
+        }
 
-        val notification: Notification = NotificationCompat.Builder(this, "CHANNEL_ID")
-            .setContentTitle("Music Player")
-            .setContentText("Playing music")
-            .setSmallIcon(R.drawable.baseline_music_note_24)
-            .setContentIntent(pendingIntent)
-            .addAction(if (isPlaying) R.drawable.baseline_stop_24 else R.drawable.baseline_play_arrow_24,
-                if (isPlaying) "Stop" else "Play", null)
-            .setChannelId(channelId)
-            .build()
-
-        startForeground(1, notification)
-
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onDestroy() {
@@ -73,12 +101,12 @@ class MusicService : Service() {
 
     fun togglePlayback() {
         if (mediaPlayer != null) {
-            if (mediaPlayer?.isPlaying == true) {
+            isPlaying = if (mediaPlayer?.isPlaying == true) {
                 mediaPlayer?.pause()
-                isPlaying = false
+                false
             } else {
                 mediaPlayer?.start()
-                isPlaying = true
+                true
             }
         }
     }
@@ -96,5 +124,11 @@ class MusicService : Service() {
         )
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(channel)
+    }
+    companion object {
+        private const val CHANNEL_ID = "music_channel"
+        private const val NOTIFICATION_ID = 1
+        const val ACTION_PLAY = "com.example.myapp.ACTION_PLAY"
+        const val ACTION_STOP = "com.example.myapp.ACTION_STOP"
     }
 }

@@ -66,6 +66,7 @@ class MusicService : Service() {
                 .setContentIntent(pendingIntent)
                 .addAction(R.drawable.baseline_play_arrow_24, "Play", playPendingIntent)
                 .addAction(R.drawable.baseline_stop_24, "Stop", stopPendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSound(null)
                 .build()
 
@@ -111,7 +112,7 @@ class MusicService : Service() {
         val channel = NotificationChannel(
             channelId,
             "Music Channel",
-            NotificationManager.IMPORTANCE_DEFAULT
+            NotificationManager.IMPORTANCE_HIGH
         )
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(channel)

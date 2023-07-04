@@ -18,19 +18,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 
 class MusicService : Service() {
-
-    private val binder: IBinder = MusicBinder()
     private var mediaPlayer: MediaPlayer? = null
     private var isPlaying: Boolean = false
     private val channelId = "music_channel"
-
-    inner class MusicBinder : Binder() {
-        fun getService(): MusicService = this@MusicService
-    }
-
-    override fun onBind(intent: Intent): IBinder {
-        return binder
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -76,6 +66,7 @@ class MusicService : Service() {
                 .setContentIntent(pendingIntent)
                 .addAction(R.drawable.baseline_play_arrow_24, "Play", playPendingIntent)
                 .addAction(R.drawable.baseline_stop_24, "Stop", stopPendingIntent)
+                .setSound(null)
                 .build()
 
             startForeground(NOTIFICATION_ID, notification)
@@ -99,7 +90,11 @@ class MusicService : Service() {
         }
     }
 
-    fun togglePlayback() {
+    override fun onBind(intent: Intent?): IBinder? {
+       return null
+    }
+
+    private fun togglePlayback() {
         if (mediaPlayer != null) {
             isPlaying = if (mediaPlayer?.isPlaying == true) {
                 mediaPlayer?.pause()
@@ -109,10 +104,6 @@ class MusicService : Service() {
                 true
             }
         }
-    }
-
-    fun isPlaying(): Boolean {
-        return mediaPlayer?.isPlaying == true
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

@@ -21,9 +21,21 @@ class MusicService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private var isPlaying: Boolean = false
     private val channelId = "music_channel"
+    private val binder: IBinder = MusicBinder()
+
+    inner class MusicBinder : Binder() {
+        fun startMusic() {
+             this@MusicService.togglePlayback()
+        }
+
+        fun stopMusic(){
+            this@MusicService.togglePlayback()
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
+        println("onCreate of MusicService caled")
         mediaPlayer = MediaPlayer.create(this, R.raw.your_song) // Replace with your audio file
     }
 
@@ -105,8 +117,8 @@ class MusicService : Service() {
         }
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-       return null
+    override fun onBind(intent: Intent?): IBinder {
+       return binder
     }
 
     private fun togglePlayback() {

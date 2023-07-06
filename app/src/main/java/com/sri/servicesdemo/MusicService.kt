@@ -58,6 +58,16 @@ class MusicService : Service() {
                 PendingIntent.FLAG_IMMUTABLE
             )
 
+            // Create a PendingIntent for the Dismiss action
+            val dismissIntent = PendingIntent.getService(
+                this,
+                0,
+                Intent(this, MusicService::class.java).apply {
+                    action = "DISMISS_ACTION"
+                },
+                PendingIntent.FLAG_IMMUTABLE
+            )
+
             val notification = NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Music Service")
                 .setContentText("Music is playing...")
@@ -66,6 +76,7 @@ class MusicService : Service() {
                 .setContentIntent(pendingIntent)
                 .addAction(R.drawable.baseline_play_arrow_24, "Play", playPendingIntent)
                 .addAction(R.drawable.baseline_stop_24, "Stop", stopPendingIntent)
+                .addAction(R.drawable.baseline_close_24, "Dismiss", dismissIntent)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSound(null)
                 .build()
@@ -77,6 +88,9 @@ class MusicService : Service() {
        println("intent got is ${intent?.action}")
         if (intent?.action == ACTION_PLAY || intent?.action== ACTION_STOP) {
             togglePlayback()
+        }else if (intent?.action == "DISMISS_ACTION") {
+            // Handle dismiss action here
+            stopSelf()
         }
 
         return START_NOT_STICKY
